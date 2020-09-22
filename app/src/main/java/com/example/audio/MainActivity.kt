@@ -14,17 +14,18 @@ import java.io.*
 import java.net.URL
 
 class MainActivity : AppCompatActivity() {
-    val TAG = "audio-rec"
-    val recFileName = "testkjs.raw"
-    val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC)
-    lateinit var recFile: File
-    var recRunning: Boolean = false
+    private val TAG = "audio-rec"
+    private val recFileName = "testkjs.raw"
+    private var storageDir: File? = null
+    private lateinit var recFile: File
+    private var recRunning: Boolean = false
 
-    fun recordAudio() {
+    private fun recordAudio() {
         try {
+            storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC)
             recFile = File(storageDir.toString() + "/" + recFileName)
         } catch (e: IOException) {
-            Log.d(TAG, "$e")
+            Log.d(TAG, "Error creating recFile: $e")
             // Error occrured creating file
         }
         try {
@@ -32,21 +33,23 @@ class MainActivity : AppCompatActivity() {
             val bufferedOutputStream = BufferedOutputStream(outputStream)
             val dataOutputStream = DataOutputStream(bufferedOutputStream)
 
-            val minBufferSize = AudioRecord.getMinBufferSize(44100,
-                    AudioFormat.CHANNEL_OUT_STEREO,
-                    AudioFormat.ENCODING_PCM_16BIT)
+            val minBufferSize = AudioRecord.getMinBufferSize(
+                44100,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT
+            )
 
             val aFormat = AudioFormat.Builder()
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setSampleRate(44100)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
-                    .build()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(44100)
+                .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                .build()
 
             val recorder = AudioRecord.Builder()
-                    .setAudioSource(MediaRecorder.AudioSource.MIC)
-                    .setAudioFormat(aFormat)
-                    .setBufferSizeInBytes(minBufferSize)
-                    .build()
+                .setAudioSource(MediaRecorder.AudioSource.MIC)
+                .setAudioFormat(aFormat)
+                .setBufferSizeInBytes(minBufferSize)
+                .build()
 
             val audioData = ByteArray(minBufferSize)
 
@@ -62,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             dataOutputStream.close()
 
         } catch (e: IOException) {
-            Log.d(TAG, "$e")
+            Log.d(TAG, "Error in outputStream: $e")
             // Some error happened
         }
     }
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        recordAudio()
+        // recordAudio()
 
         button.setOnClickListener {
             when(recRunning){
@@ -84,34 +87,34 @@ class MainActivity : AppCompatActivity() {
                     recRunning = false
                 }
             }
-        }
-
-        /*
-        val sound1: URL = URL("https://freesound.org/data/previews/140/140822_2238878-hq.mp3")
-        val sound2: URL = URL("https://freesound.org/data/previews/140/140827_2238878-hq.mp3")
-        val sound3: URL = URL("https://freesound.org/data/previews/140/140789_2238878-hq.mp3")
-
-        lifecycleScope.launch(Dispatchers.Main) {
-            val ft = async(Dispatchers.IO) { playAudio(sound1, "first") }
-            val st = async(Dispatchers.IO) { playAudio(sound2, "second") }
-            val tt = async(Dispatchers.IO) { playAudio(sound3, "third") }
-
-            ft.await()
-            st.await()
-            tt.await()
-        }
-         */
     }
+
+    /*
+    val sound1: URL = URL("https://freesound.org/data/previews/140/140822_2238878-hq.mp3")
+    val sound2: URL = URL("https://freesound.org/data/previews/140/140827_2238878-hq.mp3")
+    val sound3: URL = URL("https://freesound.org/data/previews/140/140789_2238878-hq.mp3")
+
+    lifecycleScope.launch(Dispatchers.Main) {
+        val ft = async(Dispatchers.IO) { playAudio(sound1, "first") }
+        val st = async(Dispatchers.IO) { playAudio(sound2, "second") }
+        val tt = async(Dispatchers.IO) { playAudio(sound3, "third") }
+
+        ft.await()
+        st.await()
+        tt.await()
+    }*/
+
+}
 
     private fun playAudio(track: URL, sel: String) {
         val mediaPlayer1: MediaPlayer? = MediaPlayer().apply {
             setAudioAttributes(
-                    AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .build()
+                AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
             )
-            setOnCompletionListener { txt1.text = sel }
+            // setOnCompletionListener { txt1.text = sel }
             setDataSource(track.toString())
             prepare()
             start()
